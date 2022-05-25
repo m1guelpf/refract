@@ -8,7 +8,7 @@ type Visibility = 'always' | 'connected' | 'not_connected'
 
 const ConnectWallet: FC<{ show?: Visibility }> = ({ show = 'always' }) => {
 	const { data: account } = useAccount()
-	const { login, logout } = useLogin()
+	const { login, logout, loading } = useLogin()
 
 	useEffect(() => {
 		if (!account?.address) return
@@ -24,10 +24,11 @@ const ConnectWallet: FC<{ show?: Visibility }> = ({ show = 'always' }) => {
 				return (
 					<div className={mounted ? '' : 'invisible pointer-events-none select-none'}>
 						{(() => {
-							if (!mounted || !account || !chain) {
+							if (!mounted || !account || !chain || loading) {
 								return (
 									<button
 										onClick={openConnectModal}
+										disabled={loading}
 										className="px-4 rounded-xl font-medium h-9 bg-white text-black"
 									>
 										Sign in
