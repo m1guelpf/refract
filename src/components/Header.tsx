@@ -20,12 +20,14 @@ const Header = () => {
 		if (account?.address) return
 
 		setProfile(null)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [account])
 
 	useEffect(() => {
 		if (!profiles?.profiles?.items) return
 
 		setProfile(profiles.profiles.items.find(profile => profile.isDefault) ?? profiles.profiles.items[0])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [profiles])
 
 	return (

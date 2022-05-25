@@ -11,12 +11,13 @@ import { useProfile } from '@/context/ProfileContext'
 import { omit, trimIndentedSpaces } from '@/lib/utils'
 import { ERROR_MESSAGE, LENSHUB_PROXY } from '@/lib/consts'
 import { CreatePostBroadcastItemResult } from '@/generated/types'
-import { useAccount, useContractWrite, useSignTypedData } from 'wagmi'
 import CREATE_POST_SIG from '@/graphql/publications/create-post-typed-data'
+import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagmi'
 
 const Create = () => {
 	const { profile } = useProfile()
 	const { data: account } = useAccount()
+	const { activeChain } = useNetwork()
 
 	const [getTypedData, { loading: dataLoading }] = useMutation<{
 		createPostTypedData: CreatePostBroadcastItemResult
@@ -57,6 +58,7 @@ const Create = () => {
 	const createPost = async event => {
 		event.preventDefault()
 		if (!account?.address) return toast.error('Please connect your wallet first.')
+		if (activeChain?.unsupported) return toast.error('Please change your network.')
 		if (!profile) return toast.error('Please create a Lens profile first.')
 
 		const content = trimIndentedSpaces(description)
