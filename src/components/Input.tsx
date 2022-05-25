@@ -1,4 +1,4 @@
-import { FC, InputHTMLAttributes, ReactNode, useEffect, useState } from 'react'
+import { FC, InputHTMLAttributes, ReactNode } from 'react'
 
 const Input: FC<
 	{

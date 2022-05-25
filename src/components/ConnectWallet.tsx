@@ -1,9 +1,8 @@
-import { FC, useEffect } from 'react'
-import { useAccount, useDisconnect } from 'wagmi'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import Cookies from 'js-cookie'
+import { useAccount } from 'wagmi'
+import { FC, useEffect } from 'react'
 import useLogin from '@/hooks/useLogin'
-import { COOKIE_CONFIG } from '@/lib/apollo'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 type Visibility = 'always' | 'connected' | 'not_connected'
 

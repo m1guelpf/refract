@@ -1,5 +1,5 @@
-import { Toaster } from 'react-hot-toast'
 import Header from './Header'
+import { Toaster } from 'react-hot-toast'
 
 const Layout = ({ children }) => {
 	return (

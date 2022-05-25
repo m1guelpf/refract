@@ -1,13 +1,12 @@
 import Link from 'next/link'
-import HeaderLink from './HeaderLink'
-import ConnectWallet from './ConnectWallet'
-import { useLazyQuery, useQuery } from '@apollo/client'
-import useLogin from '@/hooks/useLogin'
+import { useEffect } from 'react'
 import { useAccount } from 'wagmi'
-import GET_PROFILES from '@/graphql/auth/get-profiles'
-import { useEffect, useState } from 'react'
-import { PaginatedProfileResult, Profile } from '@/generated/types'
+import HeaderLink from './HeaderLink'
+import { useQuery } from '@apollo/client'
+import ConnectWallet from './ConnectWallet'
 import { useProfile } from '@/context/ProfileContext'
+import GET_PROFILES from '@/graphql/auth/get-profiles'
+import { PaginatedProfileResult } from '@/generated/types'
 
 const Header = () => {
 	const { profile, setProfile } = useProfile()

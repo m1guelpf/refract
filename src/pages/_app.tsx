@@ -1,13 +1,13 @@
+import { useState } from 'react'
 import 'tailwindcss/tailwind.css'
-import { APP_NAME, IS_MAINNET } from '@/lib/consts'
+import client from '@/lib/apollo'
+import Layout from '@/components/Layout'
 import '@rainbow-me/rainbowkit/styles.css'
+import { ApolloProvider } from '@apollo/client'
+import { APP_NAME, IS_MAINNET } from '@/lib/consts'
+import ProfileContext from '@/context/ProfileContext'
 import { chain, createClient, WagmiConfig } from 'wagmi'
 import { apiProvider, configureChains, getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
-import client from '@/lib/apollo'
-import { ApolloProvider } from '@apollo/client'
-import Layout from '@/components/Layout'
-import ProfileContext from '@/context/ProfileContext'
-import { useState } from 'react'
 
 const { chains, provider } = configureChains(
 	[IS_MAINNET ? chain.polygon : chain.polygonMumbai],

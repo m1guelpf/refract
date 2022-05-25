@@ -1,12 +1,12 @@
-import { useAccount, useDisconnect, useSignMessage } from 'wagmi'
+import Cookies from 'js-cookie'
+import toast from 'react-hot-toast'
+import { toastOn } from '@/lib/toasts'
+import { useEffect, useState } from 'react'
+import { COOKIE_CONFIG } from '@/lib/apollo'
 import CHALLENGE_QUERY from '@/graphql/auth/challenge'
 import { useLazyQuery, useMutation } from '@apollo/client'
 import AUTHENTICATE_QUERY from '@/graphql/auth/authenticate'
-import { COOKIE_CONFIG } from '@/lib/apollo'
-import Cookies from 'js-cookie'
-import { useEffect, useState } from 'react'
-import toast from 'react-hot-toast'
-import { toastOn } from '@/lib/toasts'
+import { useAccount, useDisconnect, useSignMessage } from 'wagmi'
 
 const useLogin = (): {
 	login: () => Promise<{ accessToken: string; refreshToken: string }>

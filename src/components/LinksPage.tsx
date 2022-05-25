@@ -1,11 +1,11 @@
-import { FC, useMemo } from 'react'
-import { ChevronUpIcon } from '@heroicons/react/solid'
 import Link from 'next/link'
-import { useQuery } from '@apollo/client'
-import EXPLORE_PUBLICATIONS from '@/graphql/explore/explorePublications'
-import { ExplorePublicationResult } from '@/generated/types'
+import { FC, useMemo } from 'react'
 import urlRegexSafe from 'url-regex-safe'
+import { useQuery } from '@apollo/client'
 import { format as timeago } from 'timeago.js'
+import { ChevronUpIcon } from '@heroicons/react/solid'
+import { ExplorePublicationResult } from '@/generated/types'
+import EXPLORE_PUBLICATIONS from '@/graphql/explore/explorePublications'
 
 type SortCriteria = 'TOP_COLLECTED' | 'TOP_COMMENTED' | 'LATEST'
 

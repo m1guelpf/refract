@@ -1,7 +1,8 @@
-import { ApolloClient, ApolloLink, HttpLink, InMemoryCache, PossibleTypesMap } from '@apollo/client'
-import Cookies, { CookieAttributes } from 'js-cookie'
-import jwtDecode from 'jwt-decode'
 import { API_URL } from './consts'
+import jwtDecode from 'jwt-decode'
+import toast from 'react-hot-toast'
+import Cookies, { CookieAttributes } from 'js-cookie'
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache, PossibleTypesMap } from '@apollo/client'
 
 const possibleTypes: PossibleTypesMap = {
 	CollectModule: [
@@ -92,7 +93,11 @@ const authLink = new ApolloLink((operation, forward) => {
 					Cookies.set('accessToken', res?.data?.refresh?.accessToken, COOKIE_CONFIG)
 					Cookies.set('refreshToken', res?.data?.refresh?.refreshToken, COOKIE_CONFIG)
 				})
-				.catch(() => console.log(ERROR_MESSAGE))
+				.catch(() =>
+					toast.error(
+						`Something went wrong when authenticating with Lens! Please log out, log back in, and try again.`
+					)
+				)
 		}
 
 		return forward(operation)
