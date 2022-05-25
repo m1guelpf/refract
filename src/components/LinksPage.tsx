@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { FC, useMemo } from 'react'
+import HeaderLink from './HeaderLink'
 import urlRegexSafe from 'url-regex-safe'
 import { useQuery } from '@apollo/client'
 import { format as timeago } from 'timeago.js'
@@ -35,6 +36,11 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 	return (
 		<>
 			<h2 className="my-4 text-2xl font-medium">{sortCriteria == 'LATEST' ? 'Newest' : 'Trending'}</h2>
+			<div className="flex md:hidden items-center space-x-4">
+				<HeaderLink href="/">Trending</HeaderLink>
+				<HeaderLink href="/newest">Newest</HeaderLink>
+				<HeaderLink href="/create">Create</HeaderLink>
+			</div>
 			{!loading && !error && links?.length == 0 && (
 				<div className="flex items-center justify-center pt-12">
 					<p className="text-white/60">

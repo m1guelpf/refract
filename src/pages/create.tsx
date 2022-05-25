@@ -6,6 +6,7 @@ import Input from '@/components/Input'
 import { toastOn } from '@/lib/toasts'
 import { useMemo, useState } from 'react'
 import { useMutation } from '@apollo/client'
+import HeaderLink from '@/components/HeaderLink'
 import LensHubProxy from '@/abis/LensHubProxy.json'
 import { useProfile } from '@/context/ProfileContext'
 import { omit, trimIndentedSpaces } from '@/lib/utils'
@@ -152,6 +153,11 @@ const Create = () => {
 			<div className="my-4 space-y-2">
 				<h2 className="text-2xl font-medium">Create</h2>
 				<p className="text-white/40">Share your favourite links from all around the internet!</p>
+			</div>
+			<div className="flex md:hidden items-center space-x-4">
+				<HeaderLink href="/">Trending</HeaderLink>
+				<HeaderLink href="/newest">Newest</HeaderLink>
+				<HeaderLink href="/create">Create</HeaderLink>
 			</div>
 			<form onSubmit={createPost} className="pt-12 space-y-6">
 				<Input

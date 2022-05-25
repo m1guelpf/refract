@@ -8,7 +8,7 @@ const Header = () => {
 			<Link href="/">
 				<a className="font-bold">Refract</a>
 			</Link>
-			<div className="flex items-center space-x-4">
+			<div className="hidden md:flex items-center space-x-4">
 				<HeaderLink href="/">Trending</HeaderLink>
 				<HeaderLink href="/newest">Newest</HeaderLink>
 				<HeaderLink href="/create">Create</HeaderLink>

@@ -5,7 +5,7 @@ const Layout = ({ children }) => {
 	return (
 		<div className="bg-black text-white min-h-screen">
 			<Header />
-			<main className="max-w-2xl mx-auto space-y-8">{children}</main>
+			<main className="max-w-2xl mx-auto space-y-8 px-6 md:px-0">{children}</main>
 			<Toaster position="bottom-right" />
 		</div>
 	)
