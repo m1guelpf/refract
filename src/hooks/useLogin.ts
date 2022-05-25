@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { toastOn } from '@/lib/toasts'
 import { useEffect, useState } from 'react'
 import { COOKIE_CONFIG } from '@/lib/apollo'
+import { useProfile } from '@/context/ProfileContext'
 import CHALLENGE_QUERY from '@/graphql/auth/challenge'
 import { useLazyQuery, useMutation } from '@apollo/client'
 import AUTHENTICATE_QUERY from '@/graphql/auth/authenticate'
@@ -15,6 +16,7 @@ const useLogin = (): {
 	loading: boolean
 	error?: Error
 } => {
+	const { setProfile } = useProfile()
 	const { disconnect } = useDisconnect()
 	const [isAuthenticated, setAuthenticated] = useState<boolean>(false)
 	const { data: accountData, isLoading: accountLoading, error: errorAccount } = useAccount()
@@ -25,6 +27,11 @@ const useLogin = (): {
 	const { signMessageAsync: signMessage, isLoading: signLoading, error: errorSign } = useSignMessage()
 
 	const login = async (): Promise<{ accessToken: string; refreshToken: string }> => {
+		if (Cookies.get('accessToken') && Cookies.get('refreshToken')) {
+			toast.success('Signed in!')
+			return { accessToken: Cookies.get('accessToken'), refreshToken: Cookies.get('refreshToken') }
+		}
+
 		const {
 			data: {
 				challenge: { text: challenge },
@@ -56,12 +63,13 @@ const useLogin = (): {
 		Cookies.remove('refreshToken', COOKIE_CONFIG)
 		setAuthenticated(false)
 		toast.success('Logged out!')
+		setProfile(null)
 
 		return disconnect()
 	}
 
 	useEffect(() => {
-		if (!Cookies.get('accessToken') || !Cookies.get('refreshToken')) return
+		if (!Cookies.get('accessToken') || (!Cookies.get('refreshToken') && accountData?.address)) return
 
 		setAuthenticated(true)
 	}, [])

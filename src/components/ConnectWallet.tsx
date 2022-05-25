@@ -2,13 +2,12 @@ import Cookies from 'js-cookie'
 import { useAccount } from 'wagmi'
 import { FC, useEffect } from 'react'
 import useLogin from '@/hooks/useLogin'
+import ProfileSelector from './ProfileSelector'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
-type Visibility = 'always' | 'connected' | 'not_connected'
-
-const ConnectWallet: FC<{ show?: Visibility }> = ({ show = 'always' }) => {
+const ConnectWallet: FC = () => {
 	const { data: account } = useAccount()
-	const { login, logout, loading } = useLogin()
+	const { login, logout, isAuthenticated } = useLogin()
 
 	useEffect(() => {
 		if (!account?.address) return
@@ -24,11 +23,10 @@ const ConnectWallet: FC<{ show?: Visibility }> = ({ show = 'always' }) => {
 				return (
 					<div className={mounted ? '' : 'invisible pointer-events-none select-none'}>
 						{(() => {
-							if (!mounted || !account || !chain || loading) {
+							if (!mounted || !account || !chain || !isAuthenticated) {
 								return (
 									<button
 										onClick={openConnectModal}
-										disabled={loading}
 										className="px-4 rounded-xl font-medium h-9 bg-white text-black"
 									>
 										Sign in
@@ -48,7 +46,8 @@ const ConnectWallet: FC<{ show?: Visibility }> = ({ show = 'always' }) => {
 							}
 
 							return (
-								<div>
+								<div className="flex items-center space-x-4">
+									<ProfileSelector />
 									<button
 										onClick={logout}
 										type="button"
