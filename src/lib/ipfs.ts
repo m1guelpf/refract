@@ -1,9 +1,15 @@
-import { Web3Storage } from 'web3.storage'
+import { create } from 'ipfs-http-client'
 
-const client = new Web3Storage({ token: process.env.NEXT_PUBLIC_IPFS_TOKEN })
+const client = create({
+	host: 'ipfs.infura.io',
+	port: 5001,
+	protocol: 'https',
+})
 
-const uploadToIPFS = (data: any): Promise<string> => {
-	return client.put([new File([JSON.stringify(data)], 'meta.json', { type: 'application/json' })])
+const uploadToIPFS = async <T>(data: T): Promise<string> => {
+	const result = await client.add(JSON.stringify(data))
+
+	return result.path
 }
 
 export default uploadToIPFS

@@ -1,37 +1,50 @@
 import Link from 'next/link'
-import { FC, useMemo } from 'react'
 import HeaderLink from './HeaderLink'
 import urlRegexSafe from 'url-regex-safe'
+import MirrorButton from './MirrorButton'
 import { useQuery } from '@apollo/client'
+import { FC, useMemo, useState } from 'react'
 import { format as timeago } from 'timeago.js'
-import { ChevronUpIcon } from '@heroicons/react/solid'
-import { ExplorePublicationResult } from '@/generated/types'
+import { useProfile } from '@/context/ProfileContext'
+import { HasMirroredResult, Post } from '@/generated/types'
+import HAS_MIRRORED from '@/graphql/publications/has-mirrored'
 import EXPLORE_PUBLICATIONS from '@/graphql/explore/explorePublications'
 
 type SortCriteria = 'TOP_COLLECTED' | 'TOP_COMMENTED' | 'LATEST'
 
 const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_COLLECTED' }) => {
-	const { data, loading, error } = useQuery<{ explorePublications: ExplorePublicationResult }>(EXPLORE_PUBLICATIONS, {
+	const { profile } = useProfile()
+	const [extraUpvotes, setExtraUpvotes] = useState<Record<string, number>>({})
+
+	const { data, loading, error } = useQuery<{ explorePublications: { items: Post[] } }>(EXPLORE_PUBLICATIONS, {
 		variables: { sortCriteria },
 	})
-
 	const links = useMemo(() => {
 		if (!data) return
-
-		console.log(data)
 
 		return data.explorePublications.items
 			.map(post => {
 				const link = post.metadata.content.match(urlRegexSafe())?.pop()
 				return {
 					...post,
+					stats: {
+						...post.stats,
+						totalAmountOfMirrors: post.stats.totalAmountOfMirrors + (extraUpvotes?.[post.id] ?? 0),
+					},
 					link: !link ? null : link.startsWith('http') ? link : `https://${link}`,
 				}
 			})
 			.filter(post => post.link)
-	}, [data])
+			.sort((a, b) => {
+				if (sortCriteria == 'LATEST') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				if (sortCriteria == 'TOP_COLLECTED') return b.stats.totalAmountOfMirrors - a.stats.totalAmountOfMirrors
+			})
+	}, [data, extraUpvotes, sortCriteria])
 
-	console.log(links)
+	const { data: hasMirrored } = useQuery<{ hasMirrored: HasMirroredResult[] }>(HAS_MIRRORED, {
+		variables: { profileId: profile?.id, publicationIds: links?.map(link => link.id) },
+		skip: !profile?.id || !links,
+	})
 
 	return (
 		<>
@@ -60,20 +73,25 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 				{links &&
 					links.map(post => (
 						<li key={post.id} className="flex items-start space-x-3">
-							<button className="bg-white/30 p-1 flex items-center justify-center rounded-full group">
-								<ChevronUpIcon className="w-5 h-5 transform transition group-hover:-translate-y-0.5" />
-							</button>
+							<MirrorButton
+								post={post}
+								mirroredPosts={hasMirrored?.hasMirrored?.[0]}
+								onChange={() => setExtraUpvotes(extras => ({ ...extras, [post.id]: 1 }))}
+							/>
 							<div className="space-y-2">
-								<a href="http://example.com" className="space-x-1 group">
-									<p className="font-semibold group-visited:text-white/60 inline">
+								<a href={post.link} className="space-x-1 group">
+									<p className="font-semibold text-white group-visited:text-[#999999] inline">
 										{post.metadata.name}
 									</p>
-									<span className="text-white/70 group-visited:text-white/40">
+									<span className="text-white/70 group-visited:text-[#777777]">
 										({new URL(post.link).host})
 									</span>
 								</a>
 								<p className="text-white/60 text-sm">
-									<span>{post.stats.totalAmountOfMirrors} points by </span>
+									<span>
+										{post.stats.totalAmountOfMirrors}{' '}
+										{post.stats.totalAmountOfMirrors == 1 ? 'point' : 'points'} by{' '}
+									</span>
 									<a
 										href={`https://lenster.xyz/u/${post.profile.handle}`}
 										target="_blank"

@@ -92,7 +92,7 @@ const Create = () => {
 					variables: {
 						request: {
 							profileId: profile.id,
-							contentURI: `https://ipfs.infura.io/ipfs/${ipfsCID}`,
+							contentURI: `ipfs://${ipfsCID}`,
 							collectModule: {
 								freeCollectModule: {
 									followerOnly: false,
