@@ -18,7 +18,7 @@ const PostDisplay: FC<{
 			<div className="space-y-2">
 				<a href={post.link} className="space-x-1 group">
 					<p className="font-semibold text-white group-visited:text-[#999999] inline">{post.metadata.name}</p>
-					<span className="text-white/70 group-visited:text-[#777777]">({new URL(post.link).host})</span>
+					<span className="text-white/70 group-visited:text-[#888888]">({new URL(post.link).host})</span>
 				</a>
 				<p className="text-white/60 text-sm">
 					<span>
