@@ -1,10 +1,9 @@
 import Link from 'next/link'
 import HeaderLink from './HeaderLink'
+import PostDisplay from './PostDisplay'
 import urlRegexSafe from 'url-regex-safe'
-import MirrorButton from './MirrorButton'
 import { useQuery } from '@apollo/client'
 import { FC, useMemo, useState } from 'react'
-import { format as timeago } from 'timeago.js'
 import { useProfile } from '@/context/ProfileContext'
 import { HasMirroredResult, Post } from '@/generated/types'
 import HAS_MIRRORED from '@/graphql/publications/has-mirrored'
@@ -71,46 +70,14 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 			)}
 			<ul id="posts" className="space-y-12">
 				{links &&
-					links.map(post => (
-						<li key={post.id} className="flex items-start space-x-3">
-							<MirrorButton
-								post={post}
-								mirroredPosts={hasMirrored?.hasMirrored?.[0]}
-								onChange={() => setExtraUpvotes(extras => ({ ...extras, [post.id]: 1 }))}
-							/>
-							<div className="space-y-2">
-								<a href={post.link} className="space-x-1 group">
-									<p className="font-semibold text-white group-visited:text-[#999999] inline">
-										{post.metadata.name}
-									</p>
-									<span className="text-white/70 group-visited:text-[#777777]">
-										({new URL(post.link).host})
-									</span>
-								</a>
-								<p className="text-white/60 text-sm">
-									<span>
-										{post.stats.totalAmountOfMirrors}{' '}
-										{post.stats.totalAmountOfMirrors == 1 ? 'point' : 'points'} by{' '}
-									</span>
-									<a
-										href={`https://lenster.xyz/u/${post.profile.handle}`}
-										target="_blank"
-										className="hover:underline"
-										rel="noreferrer"
-									>
-										{post.profile.handle}
-									</a>
-									<span className="mx-1.5">·</span>
-									<Link href={`/posts/${post.id}`}>
-										<a className="hover:underline">{timeago(post.createdAt)}</a>
-									</Link>
-									<span className="mx-1.5">·</span>
-									<Link href={`/posts/${post.id}`}>
-										<a className="hover:underline">{post.stats.totalAmountOfComments} comments</a>
-									</Link>
-								</p>
-							</div>
-						</li>
+					links.map(link => (
+						<PostDisplay
+							as="li"
+							post={link}
+							key={link.id}
+							hasMirrored={hasMirrored?.hasMirrored?.[0]}
+							onMirror={() => setExtraUpvotes(extras => ({ ...extras, [link.id]: 1 }))}
+						/>
 					))}
 			</ul>
 		</>

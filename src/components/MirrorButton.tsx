@@ -10,13 +10,14 @@ import { ChevronUpIcon } from '@heroicons/react/solid'
 import { ERROR_MESSAGE, LENSHUB_PROXY } from '@/lib/consts'
 import CREATE_MIRROR_SIG from '@/graphql/publications/create-mirror-typed-data'
 import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagmi'
-import { CreateMirrorBroadcastItemResult, HasMirroredResult, Post } from '@/generated/types'
+import { CreateMirrorBroadcastItemResult, HasMirroredResult, Publication } from '@/generated/types'
 
-const MirrorButton: FC<{ post: Post & { link: string }; mirroredPosts: HasMirroredResult; onChange: Function }> = ({
-	post,
-	onChange,
-	mirroredPosts,
-}) => {
+const MirrorButton: FC<{
+	post: Publication
+	mirroredPosts: HasMirroredResult
+	onChange: Function
+	minimal?: boolean
+}> = ({ post, onChange, mirroredPosts, minimal = false }) => {
 	const { profile } = useProfile()
 	const { activeChain } = useNetwork()
 	const { data: account } = useAccount()
@@ -121,8 +122,10 @@ const MirrorButton: FC<{ post: Post & { link: string }; mirroredPosts: HasMirror
 			onClick={mirrorPost}
 			disabled={isMirroring}
 			className={`${
-				isMirroring ? 'bg-white text-black cursor-default' : 'bg-white/30 group'
-			} p-1 flex items-center justify-center rounded-full`}
+				isMirroring
+					? `${minimal ? 'text-white' : 'bg-white text-black'} cursor-default`
+					: `${minimal ? 'text-white/60' : 'bg-white/30'} group`
+			} ${minimal ? 'py-1 -mt-0.5' : 'p-1'} flex items-center justify-center rounded-full`}
 		>
 			<ChevronUpIcon className="w-5 h-5 transform transition group-hover:-translate-y-0.5" />
 		</button>
