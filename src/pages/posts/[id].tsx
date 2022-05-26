@@ -15,8 +15,9 @@ import MirrorButton from '@/components/MirrorButton'
 import { useProfile } from '@/context/ProfileContext'
 import { omit, trimIndentedSpaces } from '@/lib/utils'
 import { useMutation, useQuery } from '@apollo/client'
-import { ERROR_MESSAGE, LENSHUB_PROXY } from '@/lib/consts'
 import HAS_MIRRORED from '@/graphql/publications/has-mirrored'
+import BROADCAST_MUTATION from '@/graphql/broadcast/broadcast'
+import { ERROR_MESSAGE, LENSHUB_PROXY, RELAYER_ON } from '@/lib/consts'
 import CREATE_COMMENT_SIG from '@/graphql/publications/create-comment-typed-data'
 import GET_POST_WITH_COMMENTS from '@/graphql/publications/get-post-with-comments'
 import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagmi'
@@ -27,6 +28,7 @@ import {
 	PaginatedPublicationResult,
 	Post,
 	Publication,
+	RelayResult,
 } from '@/generated/types'
 
 const PostPage = () => {
@@ -126,6 +128,17 @@ const PostPage = () => {
 			},
 		}
 	)
+	const [broadcast, { loading: gasslessLoading }] = useMutation<{ broadcast: RelayResult }>(BROADCAST_MUTATION, {
+		onCompleted({ broadcast }) {
+			if ('reason' in broadcast) return
+
+			setExtraComment(comment)
+			setComment('')
+		},
+		onError() {
+			toast.error(ERROR_MESSAGE)
+		},
+	})
 
 	const postComment = async event => {
 		event.preventDefault()
@@ -136,7 +149,7 @@ const PostPage = () => {
 
 		const content = trimIndentedSpaces(comment)
 
-		const { typedData } = await toastOn(
+		const { id, typedData } = await toastOn(
 			async () => {
 				const ipfsCID = await uploadToIPFS({
 					version: '1.0.0',
@@ -197,13 +210,30 @@ const PostPage = () => {
 			deadline,
 		} = typedData.value
 
-		const { v, r, s } = ethers.utils.splitSignature(
-			await signRequest({
-				domain: omit(typedData?.domain, '__typename'),
-				types: omit(typedData?.types, '__typename'),
-				value: omit(typedData?.value, '__typename'),
-			})
-		)
+		const signature = await signRequest({
+			domain: omit(typedData?.domain, '__typename'),
+			types: omit(typedData?.types, '__typename'),
+			value: omit(typedData?.value, '__typename'),
+		})
+
+		const { v, r, s } = ethers.utils.splitSignature(signature)
+
+		if (RELAYER_ON) {
+			return toastOn(
+				async () => {
+					const {
+						data: { broadcast: result },
+					} = await broadcast({
+						variables: {
+							request: { id, signature },
+						},
+					})
+
+					if ('reason' in result) throw result.reason
+				},
+				{ loading: 'Sending transaction...', success: 'Transaction sent!', error: ERROR_MESSAGE }
+			)
+		}
 
 		await toastOn(
 			() =>
