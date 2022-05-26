@@ -7,10 +7,11 @@ import { FC, useEffect, useState } from 'react'
 import LensHubProxy from '@/abis/LensHubProxy.json'
 import { useProfile } from '@/context/ProfileContext'
 import { ChevronUpIcon } from '@heroicons/react/solid'
-import { ERROR_MESSAGE, LENSHUB_PROXY } from '@/lib/consts'
+import BROADCAST_MUTATION from '@/graphql/broadcast/broadcast'
+import { ERROR_MESSAGE, LENSHUB_PROXY, RELAYER_ON } from '@/lib/consts'
 import CREATE_MIRROR_SIG from '@/graphql/publications/create-mirror-typed-data'
 import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagmi'
-import { CreateMirrorBroadcastItemResult, HasMirroredResult, Publication } from '@/generated/types'
+import { CreateMirrorBroadcastItemResult, HasMirroredResult, Publication, RelayResult } from '@/generated/types'
 
 const MirrorButton: FC<{
 	post: Publication
@@ -56,13 +57,24 @@ const MirrorButton: FC<{
 			},
 		}
 	)
+	const [broadcast] = useMutation<{ broadcast: RelayResult }>(BROADCAST_MUTATION, {
+		onCompleted({ broadcast }) {
+			if ('reason' in broadcast) return
+
+			setMirroring(true)
+			onChange()
+		},
+		onError() {
+			toast.error(ERROR_MESSAGE)
+		},
+	})
 
 	const mirrorPost = async () => {
 		if (!account?.address) return toast.error('Please connect your wallet first.')
 		if (activeChain?.unsupported) return toast.error('Please change your network.')
 		if (!profile) return toast.error('Please create a Lens profile first.')
 
-		const { typedData } = await toastOn(
+		const { id, typedData } = await toastOn(
 			async () => {
 				const {
 					data: { createMirrorTypedData },
@@ -92,13 +104,30 @@ const MirrorButton: FC<{
 			deadline,
 		} = typedData.value
 
-		const { v, r, s } = ethers.utils.splitSignature(
-			await signRequest({
-				domain: omit(typedData?.domain, '__typename'),
-				types: omit(typedData?.types, '__typename'),
-				value: omit(typedData?.value, '__typename'),
-			})
-		)
+		const signature = await signRequest({
+			domain: omit(typedData?.domain, '__typename'),
+			types: omit(typedData?.types, '__typename'),
+			value: omit(typedData?.value, '__typename'),
+		})
+
+		const { v, r, s } = ethers.utils.splitSignature(signature)
+
+		if (RELAYER_ON) {
+			return toastOn(
+				async () => {
+					const {
+						data: { broadcast: result },
+					} = await broadcast({
+						variables: {
+							request: { id, signature },
+						},
+					})
+
+					if ('reason' in result) throw result.reason
+				},
+				{ loading: 'Sending transaction...', success: 'Transaction sent!', error: ERROR_MESSAGE }
+			)
+		}
 
 		await toastOn(
 			() =>
