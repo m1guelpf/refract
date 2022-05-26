@@ -18,6 +18,7 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 	const { data, loading, error } = useQuery<{ explorePublications: { items: Post[] } }>(EXPLORE_PUBLICATIONS, {
 		variables: { sortCriteria },
 	})
+
 	const links = useMemo(() => {
 		if (!data) return
 
@@ -68,7 +69,7 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 					<p className="text-white/60">Loading...</p>
 				</div>
 			)}
-			<ul id="posts" className="space-y-12">
+			<ul id="posts" className="space-y-12 pb-6">
 				{links &&
 					links.map(link => (
 						<PostDisplay

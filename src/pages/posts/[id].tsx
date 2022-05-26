@@ -66,7 +66,7 @@ const PostPage = () => {
 
 	const comments = useMemo(() => {
 		if (!data?.comments) return
-		let comments = data.comments.items
+		let comments = [...data.comments.items]
 
 		if (extraComment) {
 			comments.push({
@@ -281,7 +281,7 @@ const PostPage = () => {
 						Create
 					</button>
 				</form>
-				<div className="!mt-8">
+				<div className="!mt-8 space-y-4">
 					{comments.map(comment => (
 						<div key={comment.id} className="flex items-start space-x-3">
 							<MirrorButton
