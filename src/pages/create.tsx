@@ -10,9 +10,10 @@ import HeaderLink from '@/components/HeaderLink'
 import LensHubProxy from '@/abis/LensHubProxy.json'
 import { useProfile } from '@/context/ProfileContext'
 import { omit, trimIndentedSpaces } from '@/lib/utils'
-import { ERROR_MESSAGE, LENSHUB_PROXY } from '@/lib/consts'
-import { CreatePostBroadcastItemResult } from '@/generated/types'
+import BROADCAST_MUTATION from '@/graphql/broadcast/broadcast'
+import { ERROR_MESSAGE, LENSHUB_PROXY, RELAYER_ON } from '@/lib/consts'
 import CREATE_POST_SIG from '@/graphql/publications/create-post-typed-data'
+import { CreatePostBroadcastItemResult, RelayResult } from '@/generated/types'
 import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagmi'
 
 const Create = () => {
@@ -30,11 +31,8 @@ const Create = () => {
 			toast.error(error.message ?? ERROR_MESSAGE)
 		},
 	})
-	const {
-		data,
-		writeAsync: sendTx,
-		isLoading: txLoading,
-	} = useContractWrite(
+
+	const { writeAsync: sendTx, isLoading: txLoading } = useContractWrite(
 		{
 			addressOrName: LENSHUB_PROXY,
 			contractInterface: LensHubProxy,
@@ -51,6 +49,18 @@ const Create = () => {
 			},
 		}
 	)
+	const [broadcast, { loading: gasslessLoading }] = useMutation<{ broadcast: RelayResult }>(BROADCAST_MUTATION, {
+		onCompleted({ broadcast }) {
+			if ('reason' in broadcast) return
+
+			setTitle('')
+			setLink('')
+			setDescription('')
+		},
+		onError() {
+			toast.error(ERROR_MESSAGE)
+		},
+	})
 
 	const [title, setTitle] = useState<string>('')
 	const [link, setLink] = useState<string>('')
@@ -64,7 +74,7 @@ const Create = () => {
 
 		const content = trimIndentedSpaces(description)
 
-		const { typedData } = await toastOn(
+		const { id, typedData } = await toastOn(
 			async () => {
 				const ipfsCID = await uploadToIPFS({
 					version: '1.0.0',
@@ -121,13 +131,29 @@ const Create = () => {
 			deadline,
 		} = typedData.value
 
-		const { v, r, s } = ethers.utils.splitSignature(
-			await signRequest({
-				domain: omit(typedData?.domain, '__typename'),
-				types: omit(typedData?.types, '__typename'),
-				value: omit(typedData?.value, '__typename'),
-			})
-		)
+		const signature = await signRequest({
+			domain: omit(typedData?.domain, '__typename'),
+			types: omit(typedData?.types, '__typename'),
+			value: omit(typedData?.value, '__typename'),
+		})
+		const { v, r, s } = ethers.utils.splitSignature(signature)
+
+		if (RELAYER_ON) {
+			return toastOn(
+				async () => {
+					const {
+						data: { broadcast: result },
+					} = await broadcast({
+						variables: {
+							request: { id, signature },
+						},
+					})
+
+					if ('reason' in result) throw result.reason
+				},
+				{ loading: 'Sending transaction...', success: 'Transaction sent!', error: ERROR_MESSAGE }
+			)
+		}
 
 		await toastOn(
 			() =>
@@ -146,7 +172,10 @@ const Create = () => {
 		)
 	}
 
-	const isLoading = useMemo(() => dataLoading || sigLoading || txLoading, [dataLoading, sigLoading, txLoading])
+	const isLoading = useMemo(
+		() => dataLoading || sigLoading || txLoading || gasslessLoading,
+		[dataLoading, sigLoading, txLoading, gasslessLoading]
+	)
 
 	return (
 		<>
