@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import bgImage from '@images/bg.png'
 import cardImage from '@images/card.jpg'
+import iconImage from '@images/icon.png'
 
 const Layout = ({ children }) => {
 	const meta = {
@@ -18,6 +19,7 @@ const Layout = ({ children }) => {
 				<title>{meta.title}</title>
 				<meta name="title" content={meta.title} />
 				<meta name="description" content={meta.description} />
+				<link rel="icon" type="image/png" href={iconImage.src} />
 
 				<meta property="og:type" content="website" />
 				<meta property="og:url" content="https://refract.withlens.app" />
