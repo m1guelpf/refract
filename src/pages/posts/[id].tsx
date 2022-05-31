@@ -262,10 +262,10 @@ const PostPage = () => {
 				<div className="flex flex-col items-center justify-center pt-12 space-y-4">
 					<p className="text-white/60">Not a Refract post!</p>
 					<a
-						href={`https://lenster.xyz/posts/${data.post.id}`}
+						href={`https://open.withlens.app/post/${data.post.id}`}
 						className="px-4 rounded-xl font-medium h-9 flex items-center bg-white text-black"
 					>
-						View on Lenster
+						View on Lens
 					</a>
 				</div>
 			</div>
@@ -328,7 +328,7 @@ const PostPage = () => {
 										{comment.stats.totalAmountOfMirrors == 1 ? 'point' : 'points'} by{' '}
 									</span>
 									<a
-										href={`https://lenster.xyz/u/${comment.profile.handle}`}
+										href={`https://open.withlens.app/profile/${comment.profile.handle}`}
 										target="_blank"
 										className="hover:underline"
 										rel="noreferrer"

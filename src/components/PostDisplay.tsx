@@ -25,7 +25,7 @@ const PostDisplay: FC<{
 						{post.stats.totalAmountOfMirrors} {post.stats.totalAmountOfMirrors == 1 ? 'point' : 'points'} by{' '}
 					</span>
 					<a
-						href={`https://lenster.xyz/u/${post.profile.handle}`}
+						href={`https://open.withlens.app/profile/${post.profile.handle}`}
 						target="_blank"
 						className="hover:underline"
 						rel="noreferrer"
