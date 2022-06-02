@@ -11,6 +11,16 @@ import EXPLORE_PUBLICATIONS from '@/graphql/explore/explorePublications'
 
 type SortCriteria = 'TOP_COLLECTED' | 'TOP_COMMENTED' | 'LATEST'
 
+function diff_hours(dt2: any, dt1: any) {
+	var diff = (dt2.getTime() - dt1.getTime()) / 1000
+	diff /= 60 * 60
+	return Math.abs(Math.round(diff))
+  }
+  
+function calculateScore(votes: number, itemHourAge: number, gravity: number) {
+	return votes / Math.pow(itemHourAge + 2, gravity)
+  }
+  
 const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_COLLECTED' }) => {
 	const { profile } = useProfile()
 	const [extraUpvotes, setExtraUpvotes] = useState<Record<string, number>>({})
@@ -37,8 +47,15 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 			.filter(post => post.link)
 			.sort((a, b) => {
 				if (sortCriteria == 'LATEST') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-				if (sortCriteria == 'TOP_COLLECTED') return b.stats.totalAmountOfMirrors - a.stats.totalAmountOfMirrors
-			})
+				if (sortCriteria == 'TOP_COLLECTED') return calculateScore(
+					b.stats.totalAmountOfMirrors,
+					diff_hours(new Date(b.createdAt), new Date()),
+					1.8
+				  )-calculateScore(
+					a.stats.totalAmountOfMirrors,
+					diff_hours(new Date(a.createdAt), new Date()),
+					1.8
+				  )			})
 	}, [data, extraUpvotes, sortCriteria])
 
 	const { data: hasMirrored } = useQuery<{ hasMirrored: HasMirroredResult[] }>(HAS_MIRRORED, {
