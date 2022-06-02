@@ -9,9 +9,19 @@ import { HasMirroredResult, Post } from '@/generated/types'
 import HAS_MIRRORED from '@/graphql/publications/has-mirrored'
 import EXPLORE_PUBLICATIONS from '@/graphql/explore/explorePublications'
 
-type SortCriteria = 'TOP_COLLECTED' | 'TOP_COMMENTED' | 'LATEST'
+type SortCriteria = 'TOP_COLLECTED' | 'TOP_COMMENTED' | 'LATEST' | 'MAGIC'
 
-const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_COLLECTED' }) => {
+const magicScore = (post: Post) => {
+	
+	const gravity = 1.8
+	const ms_in_hour = 3600000
+	const hours_since_creation = ((Date.now() - Date.parse(post.createdAt)) / ms_in_hour)
+	return (
+		post.stats.totalAmountOfMirrors / Math.pow(hours_since_creation + 2, gravity)
+	)
+}
+
+const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'MAGIC' }) => {
 	const { profile } = useProfile()
 	const [extraUpvotes, setExtraUpvotes] = useState<Record<string, number>>({})
 
@@ -38,6 +48,7 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 			.sort((a, b) => {
 				if (sortCriteria == 'LATEST') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
 				if (sortCriteria == 'TOP_COLLECTED') return b.stats.totalAmountOfMirrors - a.stats.totalAmountOfMirrors
+				if (sortCriteria == 'MAGIC') return magicScore(b) - magicScore(a)
 			})
 	}, [data, extraUpvotes, sortCriteria])
 
