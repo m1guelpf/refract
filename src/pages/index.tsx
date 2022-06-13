@@ -1,5 +1,5 @@
 import LinksPage from '@/components/LinksPage'
 
-const Home = () => <LinksPage sortCriteria="TOP_COLLECTED" />
+const Home = () => <LinksPage sortCriteria="TOP_MIRRORED" />
 
 export default Home

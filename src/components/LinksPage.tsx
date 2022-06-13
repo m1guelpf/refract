@@ -9,9 +9,9 @@ import { HasMirroredResult, Post } from '@/generated/types'
 import HAS_MIRRORED from '@/graphql/publications/has-mirrored'
 import EXPLORE_PUBLICATIONS from '@/graphql/explore/explorePublications'
 
-type SortCriteria = 'TOP_COLLECTED' | 'TOP_COMMENTED' | 'LATEST'
+type SortCriteria = 'TOP_MIRRORED' | 'TOP_COMMENTED' | 'LATEST'
 
-const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_COLLECTED' }) => {
+const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_MIRRORED' }) => {
 	const { profile } = useProfile()
 	const [extraUpvotes, setExtraUpvotes] = useState<Record<string, number>>({})
 
@@ -37,7 +37,7 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_CO
 			.filter(post => post.link)
 			.sort((a, b) => {
 				if (sortCriteria == 'LATEST') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-				if (sortCriteria == 'TOP_COLLECTED') return b.stats.totalAmountOfMirrors - a.stats.totalAmountOfMirrors
+				if (sortCriteria == 'TOP_MIRRORED') return b.stats.totalAmountOfMirrors - a.stats.totalAmountOfMirrors
 			})
 	}, [data, extraUpvotes, sortCriteria])
 
