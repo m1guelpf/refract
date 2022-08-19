@@ -6,11 +6,11 @@ import GET_PROFILES from '@/graphql/auth/get-profiles'
 import { PaginatedProfileResult } from '@/generated/types'
 
 const ProfileSelector = () => {
-	const { data: account } = useAccount()
+	const { isConnected, address } = useAccount()
 	const { profile, setProfile } = useProfile()
 	const { data: profiles } = useQuery<{ profiles: PaginatedProfileResult }>(GET_PROFILES, {
-		skip: !account.address,
-		variables: { address: account?.address },
+		skip: !isConnected,
+		variables: { address },
 	})
 
 	useEffect(() => {

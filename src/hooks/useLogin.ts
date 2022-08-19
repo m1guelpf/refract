@@ -16,10 +16,10 @@ const useLogin = (): {
 	loading: boolean
 	error?: Error
 } => {
+	const { address } = useAccount()
 	const { setProfile } = useProfile()
 	const { disconnect } = useDisconnect()
 	const [isAuthenticated, setAuthenticated] = useState<boolean>(false)
-	const { data: accountData, isLoading: accountLoading, error: errorAccount } = useAccount()
 	const [loadChallenge, { error: errorChallenge, loading: challengeLoading }] = useLazyQuery(CHALLENGE_QUERY, {
 		fetchPolicy: 'no-cache',
 	})
@@ -36,7 +36,7 @@ const useLogin = (): {
 			data: {
 				challenge: { text: challenge },
 			},
-		} = await loadChallenge({ variables: { address: accountData?.address } })
+		} = await loadChallenge({ variables: { address } })
 
 		const signature = await signMessage({ message: challenge })
 
@@ -44,7 +44,7 @@ const useLogin = (): {
 			async () => {
 				const {
 					data: { authenticate: tokens },
-				} = await authenticate({ variables: { address: accountData?.address, signature } })
+				} = await authenticate({ variables: { address, signature } })
 
 				Cookies.set('accessToken', tokens.accessToken, COOKIE_CONFIG)
 				Cookies.set('refreshToken', tokens.refreshToken, COOKIE_CONFIG)
@@ -69,7 +69,7 @@ const useLogin = (): {
 	}
 
 	useEffect(() => {
-		if (!Cookies.get('accessToken') || (!Cookies.get('refreshToken') && accountData?.address)) return
+		if (!Cookies.get('accessToken') || (!Cookies.get('refreshToken') && address)) return
 
 		setAuthenticated(true)
 	}, [])
@@ -78,8 +78,8 @@ const useLogin = (): {
 		login,
 		logout,
 		isAuthenticated,
-		loading: accountLoading || challengeLoading || signLoading || authLoading,
-		error: errorAccount || errorChallenge || errorSign || errorAuthenticate,
+		loading: challengeLoading || signLoading || authLoading,
+		error: errorChallenge || errorSign || errorAuthenticate,
 	}
 }
 

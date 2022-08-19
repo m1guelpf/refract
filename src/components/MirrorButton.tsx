@@ -20,8 +20,8 @@ const MirrorButton: FC<{
 	userMirrors: string[]
 }> = ({ post, onChange, userMirrors, minimal = false }) => {
 	const { profile } = useProfile()
-	const { activeChain } = useNetwork()
-	const { data: account } = useAccount()
+	const { chain } = useNetwork()
+	const { address } = useAccount()
 	const [isMirroring, setMirroring] = useState<boolean>(userMirrors.length > 0)
 
 	useEffect(() => {
@@ -39,22 +39,19 @@ const MirrorButton: FC<{
 		},
 	})
 
-	const { writeAsync: sendTx } = useContractWrite(
-		{
-			addressOrName: LENSHUB_PROXY,
-			contractInterface: LensHubProxy,
+	const { writeAsync: sendTx } = useContractWrite({
+		mode: 'recklesslyUnprepared',
+		addressOrName: LENSHUB_PROXY,
+		contractInterface: LensHubProxy,
+		functionName: 'mirrorWithSig',
+		onError(error: any) {
+			toast.error(error?.data?.message ?? error?.message)
 		},
-		'mirrorWithSig',
-		{
-			onError(error: any) {
-				toast.error(error?.data?.message ?? error?.message)
-			},
-			onSuccess() {
-				setMirroring(true)
-				onChange()
-			},
-		}
-	)
+		onSuccess() {
+			setMirroring(true)
+			onChange()
+		},
+	})
 	const [broadcast] = useMutation<{ broadcast: RelayResult }>(BROADCAST_MUTATION, {
 		onCompleted({ broadcast }) {
 			if ('reason' in broadcast) return
@@ -68,8 +65,8 @@ const MirrorButton: FC<{
 	})
 
 	const mirrorPost = async () => {
-		if (!account?.address) return toast.error('Please connect your wallet first.')
-		if (activeChain?.unsupported) return toast.error('Please change your network.')
+		if (!address) return toast.error('Please connect your wallet first.')
+		if (chain?.unsupported) return toast.error('Please change your network.')
 		if (!profile) return toast.error('Please create a Lens profile first.')
 
 		const { id, typedData } = await toastOn(
@@ -130,7 +127,7 @@ const MirrorButton: FC<{
 		await toastOn(
 			() =>
 				sendTx({
-					args: {
+					recklesslySetUnpreparedArgs: {
 						profileId,
 						profileIdPointed,
 						pubIdPointed,

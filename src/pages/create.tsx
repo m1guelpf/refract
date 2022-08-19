@@ -18,8 +18,8 @@ import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagm
 
 const Create = () => {
 	const { profile } = useProfile()
-	const { data: account } = useAccount()
-	const { activeChain } = useNetwork()
+	const { address } = useAccount()
+	const { chain } = useNetwork()
 
 	const [getTypedData, { loading: dataLoading }] = useMutation<{
 		createPostTypedData: CreatePostBroadcastItemResult
@@ -32,23 +32,20 @@ const Create = () => {
 		},
 	})
 
-	const { writeAsync: sendTx, isLoading: txLoading } = useContractWrite(
-		{
-			addressOrName: LENSHUB_PROXY,
-			contractInterface: LensHubProxy,
+	const { writeAsync: sendTx, isLoading: txLoading } = useContractWrite({
+		mode: 'recklesslyUnprepared',
+		addressOrName: LENSHUB_PROXY,
+		contractInterface: LensHubProxy,
+		functionName: 'postWithSig',
+		onError(error: any) {
+			toast.error(error?.data?.message ?? error?.message)
 		},
-		'postWithSig',
-		{
-			onError(error: any) {
-				toast.error(error?.data?.message ?? error?.message)
-			},
-			onSuccess() {
-				setTitle('')
-				setLink('')
-				setDescription('')
-			},
-		}
-	)
+		onSuccess() {
+			setTitle('')
+			setLink('')
+			setDescription('')
+		},
+	})
 	const [broadcast, { loading: gasslessLoading }] = useMutation<{ broadcast: RelayResult }>(BROADCAST_MUTATION, {
 		onCompleted({ broadcast }) {
 			if ('reason' in broadcast) return
@@ -68,8 +65,8 @@ const Create = () => {
 
 	const createPost = async event => {
 		event.preventDefault()
-		if (!account?.address) return toast.error('Please connect your wallet first.')
-		if (activeChain?.unsupported) return toast.error('Please change your network.')
+		if (!address) return toast.error('Please connect your wallet first.')
+		if (chain?.unsupported) return toast.error('Please change your network.')
 		if (!profile) return toast.error('Please create a Lens profile first.')
 
 		const content = trimIndentedSpaces(description)
@@ -158,7 +155,7 @@ const Create = () => {
 		await toastOn(
 			() =>
 				sendTx({
-					args: {
+					recklesslySetUnpreparedArgs: {
 						profileId,
 						contentURI,
 						collectModule,

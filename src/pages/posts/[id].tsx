@@ -36,8 +36,8 @@ const PostPage = () => {
 	} = useRouter()
 
 	const { profile } = useProfile()
-	const { activeChain } = useNetwork()
-	const { data: account } = useAccount()
+	const { chain } = useNetwork()
+	const { address } = useAccount()
 
 	const [extraUpvotes, setExtraUpvotes] = useState<Record<string, number>>({})
 	const [extraComment, setExtraComment] = useState<string>(null)
@@ -101,22 +101,19 @@ const PostPage = () => {
 			toast.error(error.message ?? ERROR_MESSAGE)
 		},
 	})
-	const { writeAsync: sendTx, isLoading: txLoading } = useContractWrite(
-		{
-			addressOrName: LENSHUB_PROXY,
-			contractInterface: LensHubProxy,
+	const { writeAsync: sendTx, isLoading: txLoading } = useContractWrite({
+		mode: 'recklesslyUnprepared',
+		addressOrName: LENSHUB_PROXY,
+		contractInterface: LensHubProxy,
+		functionName: 'commentWithSig',
+		onError(error: any) {
+			toast.error(error?.data?.message ?? error?.message)
 		},
-		'commentWithSig',
-		{
-			onError(error: any) {
-				toast.error(error?.data?.message ?? error?.message)
-			},
-			onSuccess() {
-				setExtraComment(comment)
-				setComment('')
-			},
-		}
-	)
+		onSuccess() {
+			setExtraComment(comment)
+			setComment('')
+		},
+	})
 	const [broadcast, { loading: gasslessLoading }] = useMutation<{ broadcast: RelayResult }>(BROADCAST_MUTATION, {
 		onCompleted({ broadcast }) {
 			if ('reason' in broadcast) return
@@ -132,8 +129,8 @@ const PostPage = () => {
 	const postComment = async event => {
 		event.preventDefault()
 
-		if (!account?.address) return toast.error('Please connect your wallet first.')
-		if (activeChain?.unsupported) return toast.error('Please change your network.')
+		if (!address) return toast.error('Please connect your wallet first.')
+		if (chain?.unsupported) return toast.error('Please change your network.')
 		if (!profile) return toast.error('Please create a Lens profile first.')
 
 		const content = trimIndentedSpaces(comment)
@@ -227,7 +224,7 @@ const PostPage = () => {
 		await toastOn(
 			() =>
 				sendTx({
-					args: {
+					recklesslySetUnpreparedArgs: {
 						profileId,
 						contentURI,
 						profileIdPointed,
