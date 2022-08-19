@@ -1,12 +1,11 @@
 import Link from 'next/link'
 import HeaderLink from './HeaderLink'
 import PostDisplay from './PostDisplay'
+import { Post } from '@/generated/types'
 import urlRegexSafe from 'url-regex-safe'
 import { useQuery } from '@apollo/client'
 import { FC, useMemo, useState } from 'react'
 import { useProfile } from '@/context/ProfileContext'
-import { HasMirroredResult, Post } from '@/generated/types'
-import HAS_MIRRORED from '@/graphql/publications/has-mirrored'
 import EXPLORE_PUBLICATIONS from '@/graphql/explore/explorePublications'
 
 type SortCriteria = 'TOP_MIRRORED' | 'TOP_COMMENTED' | 'LATEST'
@@ -16,7 +15,7 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_MI
 	const [extraUpvotes, setExtraUpvotes] = useState<Record<string, number>>({})
 
 	const { data, loading, error } = useQuery<{ explorePublications: { items: Post[] } }>(EXPLORE_PUBLICATIONS, {
-		variables: { sortCriteria },
+		variables: { sortCriteria, profileId: profile?.id },
 	})
 
 	const links = useMemo(() => {
@@ -40,11 +39,6 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_MI
 				if (sortCriteria == 'TOP_MIRRORED') return b.stats.totalAmountOfMirrors - a.stats.totalAmountOfMirrors
 			})
 	}, [data, extraUpvotes, sortCriteria])
-
-	const { data: hasMirrored } = useQuery<{ hasMirrored: HasMirroredResult[] }>(HAS_MIRRORED, {
-		variables: { profileId: profile?.id, publicationIds: links?.map(link => link.id) },
-		skip: !profile?.id || !links,
-	})
 
 	return (
 		<>
@@ -76,7 +70,6 @@ const LinksPage: FC<{ sortCriteria?: SortCriteria }> = ({ sortCriteria = 'TOP_MI
 							as="li"
 							post={link}
 							key={link.id}
-							hasMirrored={hasMirrored?.hasMirrored?.[0]}
 							onMirror={() => setExtraUpvotes(extras => ({ ...extras, [link.id]: 1 }))}
 						/>
 					))}

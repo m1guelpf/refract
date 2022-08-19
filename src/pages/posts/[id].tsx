@@ -15,20 +15,19 @@ import MirrorButton from '@/components/MirrorButton'
 import { useProfile } from '@/context/ProfileContext'
 import { omit, trimIndentedSpaces } from '@/lib/utils'
 import { useMutation, useQuery } from '@apollo/client'
-import HAS_MIRRORED from '@/graphql/publications/has-mirrored'
 import BROADCAST_MUTATION from '@/graphql/broadcast/broadcast'
 import { ERROR_MESSAGE, LENSHUB_PROXY, RELAYER_ON } from '@/lib/consts'
 import CREATE_COMMENT_SIG from '@/graphql/publications/create-comment-typed-data'
 import GET_POST_WITH_COMMENTS from '@/graphql/publications/get-post-with-comments'
 import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagmi'
 import {
-	CreateCommentBroadcastItemResult,
-	HasMirroredResult,
 	Maybe,
+	CreateCommentBroadcastItemResult,
 	PaginatedPublicationResult,
 	Post,
 	Publication,
 	RelayResult,
+	Comment,
 } from '@/generated/types'
 
 const PostPage = () => {
@@ -46,9 +45,7 @@ const PostPage = () => {
 
 	const { data, loading } = useQuery<{ post: Maybe<Publication>; comments: PaginatedPublicationResult }>(
 		GET_POST_WITH_COMMENTS,
-		{
-			variables: { publicationId: id },
-		}
+		{ variables: { publicationId: id, profileId: profile?.id } }
 	)
 
 	const post = useMemo(() => {
@@ -93,14 +90,6 @@ const PostPage = () => {
 		}))
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.comments, extraComment, extraUpvotes])
-
-	const { data: hasMirrored } = useQuery<{ hasMirrored: HasMirroredResult[] }>(HAS_MIRRORED, {
-		variables: {
-			profileId: profile?.id,
-			publicationIds: [post?.id, ...(comments ? comments?.map(comment => comment.id) : [])],
-		},
-		skip: !profile?.id || !post,
-	})
 
 	const [getTypedData, { loading: dataLoading }] = useMutation<{
 		createCommentTypedData: CreateCommentBroadcastItemResult
@@ -289,7 +278,6 @@ const PostPage = () => {
 					{post && (
 						<PostDisplay
 							post={post}
-							hasMirrored={hasMirrored?.hasMirrored?.[0]}
 							onMirror={() => setExtraUpvotes(extras => ({ ...extras, [post.id]: 1 }))}
 						/>
 					)}
@@ -312,13 +300,13 @@ const PostPage = () => {
 					</button>
 				</form>
 				<div className="!mt-8 space-y-4">
-					{comments.map(comment => (
+					{comments.map((comment: Comment) => (
 						<div key={comment.id} className="flex items-start space-x-3">
 							<MirrorButton
-								post={comment}
-								mirroredPosts={hasMirrored?.hasMirrored?.[0]}
-								onChange={() => setExtraUpvotes(extras => ({ ...extras, [comment.id]: 1 }))}
 								minimal
+								post={comment}
+								userMirrors={comment.mirrors}
+								onChange={() => setExtraUpvotes(extras => ({ ...extras, [comment.id]: 1 }))}
 							/>
 							<div className="space-y-2">
 								<p>{comment.metadata.content}</p>

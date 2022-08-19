@@ -11,24 +11,22 @@ import BROADCAST_MUTATION from '@/graphql/broadcast/broadcast'
 import { ERROR_MESSAGE, LENSHUB_PROXY, RELAYER_ON } from '@/lib/consts'
 import CREATE_MIRROR_SIG from '@/graphql/publications/create-mirror-typed-data'
 import { useAccount, useContractWrite, useNetwork, useSignTypedData } from 'wagmi'
-import { CreateMirrorBroadcastItemResult, HasMirroredResult, Publication, RelayResult } from '@/generated/types'
+import { CreateMirrorBroadcastItemResult, Publication, RelayResult } from '@/generated/types'
 
 const MirrorButton: FC<{
 	post: Publication
-	mirroredPosts: HasMirroredResult
 	onChange: Function
 	minimal?: boolean
-}> = ({ post, onChange, mirroredPosts, minimal = false }) => {
+	userMirrors: string[]
+}> = ({ post, onChange, userMirrors, minimal = false }) => {
 	const { profile } = useProfile()
 	const { activeChain } = useNetwork()
 	const { data: account } = useAccount()
-	const [isMirroring, setMirroring] = useState<boolean>(false)
+	const [isMirroring, setMirroring] = useState<boolean>(userMirrors.length > 0)
 
 	useEffect(() => {
-		setMirroring(
-			mirroredPosts?.results?.find(mirroredPost => mirroredPost.publicationId === post?.id)?.mirrored ?? false
-		)
-	}, [post?.id, mirroredPosts?.results])
+		setMirroring(userMirrors.length > 0)
+	}, [userMirrors?.length])
 
 	const [getTypedData] = useMutation<{
 		createMirrorTypedData: CreateMirrorBroadcastItemResult

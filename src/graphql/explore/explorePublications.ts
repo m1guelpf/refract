@@ -1,14 +1,14 @@
 import { gql } from '@apollo/client'
 
 const EXPLORE_PUBLICATIONS = gql`
-	query ($sortCriteria: PublicationSortCriteria!) {
+	query ($sortCriteria: PublicationSortCriteria!, $profileId: ProfileId) {
 		explorePublications(
 			request: {
-				sortCriteria: $sortCriteria
-				publicationTypes: [POST]
 				limit: 25
 				noRandomize: true
 				sources: ["refract"]
+				publicationTypes: [POST]
+				sortCriteria: $sortCriteria
 			}
 		) {
 			items {
@@ -16,11 +16,17 @@ const EXPLORE_PUBLICATIONS = gql`
 					id
 					profile {
 						handle
+						onChainIdentity {
+							worldcoin {
+								isHuman
+							}
+						}
 					}
 					stats {
 						totalAmountOfMirrors
 						totalAmountOfComments
 					}
+					mirrors(by: $profileId)
 					metadata {
 						name
 						content

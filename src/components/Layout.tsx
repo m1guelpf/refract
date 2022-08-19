@@ -1,10 +1,10 @@
 import Header from './Header'
-import { Toaster } from 'react-hot-toast'
 import Head from 'next/head'
 import Image from 'next/image'
 import bgImage from '@images/bg.png'
 import cardImage from '@images/card.jpg'
 import iconImage from '@images/icon.png'
+import { Toaster } from 'react-hot-toast'
 
 const Layout = ({ children }) => {
 	const meta = {
